@@ -195,8 +195,7 @@ app.get(["/", "/jdt"], async (req, res) => {
 
     // ...
     const raw = await fetchAllCommits({ owner, repo, branch, date });
-    const entries = await raw.map(groom).filter((c) => c.duration > 0);
-    const myEntries = await entries.filter((c) => c.author == process.env.ME);
+    let entries = raw.map(groom).filter((c) => c.duration > 0).filter((c) => c.author === process.env.USER);
 
     // lire les exceptions depuis le JSON
     const exc = await readExceptions();
@@ -204,7 +203,7 @@ app.get(["/", "/jdt"], async (req, res) => {
     // Remplacer les commits par leur exceptions
     const keyOf = (x) => (x.sha || x.id || "").toLowerCase().trim();
     const excByKey = new Map(exc.map((x) => [keyOf(x), x]));
-    const patched = myEntries.map((e) => {
+    const patched = entries.map((e) => {
       const repl = excByKey.get(keyOf(e));
       if (repl) {
         return repl; // remplace si une exception existe
